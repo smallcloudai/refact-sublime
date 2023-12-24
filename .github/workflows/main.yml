@@ -56,11 +56,11 @@ jobs:
           workflow: build.yml
           repo: smallcloudai/refact-lsp
           branch: main 
-          path: ./server
-          name: refact-lsp-${{ matrix.target }}
+          path: ./assets
+          name: dist-${{ matrix.target }}
       - name: Create Plugin Zip
         uses: qmonnet/git-archive-all-action@v1
         with:
           output-files: refact-${{ matrix.target }}.zip
           base-repo: project
-          include: ./server/refact-lsp-${{ matrix.target }}
+          include: ./assets/dist-${{ matrix.target }}
