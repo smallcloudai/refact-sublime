@@ -83,10 +83,3 @@ jobs:
           branch: main 
           path: ./assets
           name: dist-${{ matrix.target }}
-
-       - name: Create Plugin Zip
-        uses: qmonnet/git-archive-all-action@v1
-        with:
-          output-files: refact-${{ matrix.target }}.zip
-          base-repo: project
-          include: ./assets/dist-${{ matrix.target }}
