@@ -31,7 +31,7 @@ class RefactProcessWrapper():
 		address_url = s.get("address_url", "")
 		address_url = address_url if len(address_url) > 0 else "Refact"
 		api_key = s.get("api_key", "")
-		options = [self.get_server_path(), "--address-url",  address_url, "--api-key", api_key, "--lsp-stdin-stdout", "1"]
+		options = [self.get_server_path(), "--address-url",  address_url, "--api-key", api_key, "--lsp-stdin-stdout", "1", "--logs-stderr"]
 
 		telemetry_basic = s.get("telemetry_basic", False)
 		if telemetry_basic:
