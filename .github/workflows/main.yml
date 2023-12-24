@@ -1,3 +1,28 @@
+
+Skip to content
+
+    smallcloudai
+    /
+    refact-vscode
+
+Code
+Issues 20
+Pull requests 5
+Actions
+Projects
+Security
+
+    Insights
+
+CI build
+V1.2 #206
+
+Jobs
+
+Run details
+
+Workflow file for this run
+.github/workflows/build.yml at ab0b9c8
 name: CI build
 
 on:
@@ -58,7 +83,8 @@ jobs:
           branch: main 
           path: ./assets
           name: dist-${{ matrix.target }}
-      - name: Create Plugin Zip
+
+       - name: Create Plugin Zip
         uses: qmonnet/git-archive-all-action@v1
         with:
           output-files: refact-${{ matrix.target }}.zip
