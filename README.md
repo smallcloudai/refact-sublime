@@ -15,7 +15,7 @@ Holds the session state for each open file. Whenever a new session is created th
 Calls PhantomState which handles displaying the grey text suggestions. 
 
 refact_process.py
-Stats the server process and resets the server if it dies. Logs messages from the server and informs the statusbar about server errors. 
+Starts the server process and resets the server if it dies. Logs messages from the server and informs the statusbar about server errors. 
 
 refact_lsp.py
 Used to communicate directly with the lsp server. 
