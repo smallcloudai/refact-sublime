@@ -107,7 +107,7 @@ class LspClient(object):
         :param TextDocumentItem textDocument: The text document.
         """
         result_dict =  self.lsp_endpoint.call_method("textDocument/documentSymbol", textDocument=textDocument)
-        return [lsp_structs.SymbolInformation(**sym) for sym in result_dict]
+        return [SymbolInformation(**sym) for sym in result_dict]
 
 
     def typeDefinition(self, textDocument, position):
@@ -118,7 +118,7 @@ class LspClient(object):
         :param Position position: The position inside the text document.
         """
         result_dict = self.lsp_endpoint.call_method("textDocument/definition", textDocument=textDocument, position=position)
-        return [lsp_structs.Location(**result) for result in result_dict]
+        return [Location(**result) for result in result_dict]
 
 
     def signatureHelp(self, textDocument, position):
@@ -129,7 +129,7 @@ class LspClient(object):
             :param Position position: The position inside the text document.
             """
             result_dict = self.lsp_endpoint.call_method("textDocument/signatureHelp", textDocument=textDocument, position=position)
-            return lsp_structs.SignatureHelp(**result_dict)
+            return SignatureHelp(**result_dict)
 
 
     def completion(self, textDocument, position, context):
@@ -143,9 +143,9 @@ class LspClient(object):
             """
             result_dict = self.lsp_endpoint.call_method("textDocument/completion", textDocument=textDocument, position=position, context=context)
             if "isIncomplete" in result_dict:
-                return lsp_structs.CompletionList(**result_dict)
+                return CompletionList(**result_dict)
             
-            return [lsp_structs.CompletionItem(**result) for result in result_dict]
+            return [CompletionItem(**result) for result in result_dict]
     
     
     def declaration(self, textDocument, position):
@@ -161,9 +161,9 @@ class LspClient(object):
             """
             result_dict = self.lsp_endpoint.call_method("textDocument/declaration", textDocument=textDocument, position=position)
             if "uri" in result_dict:
-                return lsp_structs.Location(**result_dict)
+                return Location(**result_dict)
 
-            return [lsp_structs.Location(**result) if "uri" in result else lsp_structs.LinkLocation(**result) for result in result_dict]
+            return [Location(**result) if "uri" in result else LinkLocation(**result) for result in result_dict]
    
 
     def definition(self, textDocument, position):
@@ -179,6 +179,6 @@ class LspClient(object):
             """
             result_dict = self.lsp_endpoint.call_method("textDocument/definition", textDocument=textDocument, position=position)
             if "uri" in result_dict:
-                return lsp_structs.Location(**result_dict)
+                return Location(**result_dict)
 
-            return [lsp_structs.Location(**result) if "uri" in result else lsp_structs.LinkLocation(**result) for result in result_dict]
+            return [Location(**result) if "uri" in result else LinkLocation(**result) for result in result_dict]

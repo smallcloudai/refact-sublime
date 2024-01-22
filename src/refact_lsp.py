@@ -53,9 +53,8 @@ class LSP:
 				multiline=multiline)
 			self.statusbar.update_statusbar("ok")
 			return res
-		except TimeoutError:
-			self.statusbar.update_statusbar("error", "TimeoutError")
-			print("lsp getCompletions TimeoutError")
+		except Exception as err:
+			self.statusbar.update_statusbar("error", str(type(err)))
 
 	def shutdown(self):
 		try:
@@ -75,7 +74,8 @@ class LSP:
 		self.lsp_client = LspClient(self.lsp_endpoint)
 		try:
 			self.lsp_client.initialize(process.pid, None, None, None, capabilities, "off", None)
-		except:
+		except Exception as err:
+			self.statusbar.update_statusbar("error", str(type(err)))
 			print("lsp initialize error")
 
 def get_language_id(file_type):
