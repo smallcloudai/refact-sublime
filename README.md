@@ -1,6 +1,14 @@
 # refact-sublime
 Refact for VS Code is a free, open-source AI code assistant
 
+#Installation Instructions
+1. Download the repository.
+2. Download the refact-lsp server executable from https://github.com/smallcloudai/refact-lsp
+3. Move the server executable to the Server folder and rename the executable "refact-lsp"
+4. Move the folder repsository to sublime's "Packages" folder (you can find this by opening the command prompt in sublime and typing "browse packages")
+5. rename the folder to "refact"
+6. Open refact.sublime-settings and add the API key
+   
 #File Documentation#
 
 #__init__.py
