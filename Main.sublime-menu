@@ -1,0 +1,13 @@
+[
+	{
+		"id": "tools",
+		"children":
+		[
+			{
+				"command": "refact_pause",
+				"caption": "pause refact",
+				"args":{}
+			},
+		]
+	}
+]
