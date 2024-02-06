@@ -1,10 +1,13 @@
 {
-	"address_url": "",
-	"api_key": "",
+	// Take your API key from https://refact.smallcloud.ai/
+	"api_key": "",     
+	// For cloud inference, use "Refact"
+	// For self-hosted version, http://127.0.0.1:8008
+    // For Enterprise version, https://your-company-server/
+	"address_url": "Refact",
+	// less important stuff below
 	"code_completion_model": "",
-	"code_completion_model_works_like_model": "",
 	"code_completion_scratchpad": "",
 	"pause_completion": false,
-	"telemetry_basic": false,
 	"telemetry_code_snippets": false
 }
