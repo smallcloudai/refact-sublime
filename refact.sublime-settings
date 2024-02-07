@@ -1,7 +1,7 @@
 {
-	// Take your API key from https://refact.smallcloud.ai/
-	"api_key": "",     
-	// For cloud inference, use "Refact"
+	// For cloud inference, use "Refact" in address_url, and
+	// take your API key from https://refact.smallcloud.ai/
+	"api_key": "",
 	// For self-hosted version, http://127.0.0.1:8008
     // For Enterprise version, https://your-company-server/
 	"address_url": "Refact",
@@ -10,4 +10,7 @@
 	"code_completion_scratchpad": "",
 	"pause_completion": false,
 	"telemetry_code_snippets": false
+	// Use something like
+	// tail -f -n 1000 ~/.cache/refact/logs/rustbinary.2024-02-07
+	// to see what's going on with the server
 }
