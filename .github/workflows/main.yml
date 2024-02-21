@@ -85,7 +85,7 @@ jobs:
           mkdir original
           mkdir artifacts
           cp *.* original
-          cp .python-version /original
+          cp .python-version original/
           cp -r src server original
           
           for platform_folder in ./dist*; do
