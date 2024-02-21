@@ -24,7 +24,7 @@ class RefactProcessWrapper():
 				self.statusbar.update_statusbar("error", line)
 
 	def get_server_path(self):
-		current_dir = dirname(realpath(__file__))
+		current_dir = os.path.dirname(dirname(realpath(__file__)))
 		return os.path.join(sublime.packages_path(), current_dir, "server", "refact-lsp")
 	
 	def get_server_commands(self):
