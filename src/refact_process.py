@@ -5,6 +5,7 @@ import threading
 import os
 from .refact_lsp import LSP
 from .statusbar import StatusBar
+from os.path import dirname, realpath
 
 class RefactProcessWrapper():
 	def __init__(self):
@@ -23,7 +24,8 @@ class RefactProcessWrapper():
 				self.statusbar.update_statusbar("error", line)
 
 	def get_server_path(self):
-		return os.path.join(sublime.packages_path(), "refact", "server", "refact-lsp")
+		current_dir = dirname(realpath(__file__))
+		return os.path.join(sublime.packages_path(), current_dir, "server", "refact-lsp")
 	
 	def get_server_commands(self):
 		s = sublime.load_settings("refact.sublime-settings")
