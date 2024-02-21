@@ -1,60 +1,116 @@
 name: CI build
 
 on:
-  # Trigger the workflow on pushes to only the 'main' branch (this avoids duplicate checks being run e.g. for dependabot pull requests)
   push:
     branches: [main]
-  # Trigger the workflow on any pull request
   pull_request:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'     
+        required: true
 
 jobs:
-  dist:
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            code-target: win32-x64
-          - os: windows-latest
-            target: aarch64-pc-windows-msvc
-            code-target: win32-arm64
-          - os: ubuntu-20.04
-            target: x86_64-unknown-linux-gnu
-            code-target: linux-x64
-          - os: ubuntu-20.04
-            target: aarch64-unknown-linux-gnu
-            code-target: linux-arm64
-          - os: ubuntu-20.04
-            target: arm-unknown-linux-gnueabihf
-            code-target: linux-armhf
-          - os: macos-11
-            target: x86_64-apple-darwin
-            code-target: darwin-x64
-          - os: macos-11
-            target: aarch64-apple-darwin
-            code-target: darwin-arm64
+  # dist:
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - os: windows-latest
+  #           target: x86_64-pc-windows-msvc
+  #           code-target: win32-x64
+  #         - os: windows-latest
+  #           target: aarch64-pc-windows-msvc
+  #           code-target: win32-arm64
+  #         - os: ubuntu-20.04
+  #           target: x86_64-unknown-linux-gnu
+  #           code-target: linux-x64
+  #         - os: ubuntu-20.04
+  #           target: aarch64-unknown-linux-gnu
+  #           code-target: linux-arm64
+  #         - os: ubuntu-20.04
+  #           target: arm-unknown-linux-gnueabihf
+  #           code-target: linux-armhf
+  #         - os: macos-11
+  #           target: x86_64-apple-darwin
+  #           code-target: darwin-x64
+  #         - os: macos-11
+  #           target: aarch64-apple-darwin
+  #           code-target: darwin-arm64
 
-    env:
-      LLM_LS_TARGET: ${{ matrix.target }}
+  #   env:
+  #     LLM_LS_TARGET: ${{ matrix.target }}
 
-    name: dist (${{ matrix.target }})
-    runs-on: ${{ matrix.os }}
-    container: ${{ matrix.container }}
+  #   name: dist (${{ matrix.target }})
+  #   runs-on: ${{ matrix.os }}
+  #   container: ${{ matrix.container }}
+
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: ${{ env.FETCH_DEPTH }}
+          
+  #     - name: Download artifact
+  #       id: download-artifact
+  #       uses: dawidd6/action-download-artifact@v3
+  #       with:
+  #         github_token: ${{secrets.GITHUB_TOKEN}}
+  #         workflow: build.yml
+  #         workflow_conclusion: success
+  #         repo: smallcloudai/refact-lsp
+  #         branch: main 
+
+  release:
+    name: Download Artifact (Release)
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: ${{ env.FETCH_DEPTH }}
           
       - name: Download artifact
         id: download-artifact
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v3
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           workflow: build.yml
+          workflow_conclusion: success
           repo: smallcloudai/refact-lsp
-          branch: main 
-          path: ./assets
-          name: dist-${{ matrix.target }}
+          branch: main
+
+      - name: Create packages
+        run: |          
+          mkdir original
+          mkdir artifacts
+          cp *.* original
+          cp .python-version original/
+          cp -r src server original
+          
+          for platform_folder in ./dist*; do
+              if [[ -d $platform_folder ]]; then
+                  platform_name=$(basename "$platform_folder")
+          
+                  case $platform_name in
+                    dist-aarch64-apple-darwin) group="osx-arm64" ;;
+                    dist-x86_64-apple-darwin) group="osx-x64" ;;
+                    dist-aarch64-unknown-linux-gnu|dist-aarch64-unknown-linux-musl) group="linux-arm64" ;;
+                    dist-x86_64-unknown-linux-gnu|dist-x86_64-unknown-linux-musl) group="linux-x64" ;;
+                    dist-x86_64-pc-windows-msvc) group="windows-x64" ;;
+                    dist-aarch64-pc-windows-msvc) group="windows-arm64" ;;
+                    dist-i686-pc-windows-msvc) group="windows-x86" ;;
+                    *) echo "Unknown platform: $platform_name"; continue ;;
+                  esac
+          
+                  rm -f original/server/*
+                  cp -r "$platform_folder"/* original/server
+                  (cd original && zip -r -q "../artifacts/Refact-$group.sublime-package" * .python-version)
+              fi
+          done
+
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "artifacts/Refact-*.sublime-package"
+          tag: ${{ github.event.inputs.version }}
