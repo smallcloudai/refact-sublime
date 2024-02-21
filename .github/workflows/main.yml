@@ -105,7 +105,7 @@ jobs:
           
                   rm -f original/server/*
                   cp -r "$platform_folder"/* original/server
-                  (cd original && zip -r -q "../artifacts/Refact-$group.sublime-package" *)
+                  (cd original && zip -r -q "../artifacts/Refact-$group.sublime-package" * .*)
               fi
           done
 
