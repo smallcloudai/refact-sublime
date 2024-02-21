@@ -82,10 +82,10 @@ jobs:
 
       - name: Create packages
         run: |          
-          shopt -s dotglob
           mkdir original
           mkdir artifacts
           cp *.* original
+          cp .python-version /original
           cp -r src server original
           
           for platform_folder in ./dist*; do
@@ -108,7 +108,6 @@ jobs:
                   (cd original && zip -r -q "../artifacts/Refact-$group.sublime-package" *)
               fi
           done
-          shopt -u dotglob
 
       - name: Release
         uses: ncipollo/release-action@v1
