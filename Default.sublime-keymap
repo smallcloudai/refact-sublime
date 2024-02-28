@@ -1,5 +1,6 @@
 [
 	{ "keys": ["tab"], "command": "refact_accept_completion", "context": [{"key": "refact.show_completion"}] },
 	{ "keys": ["escape"], "command": "refact_clear_completion", "context": [{"key": "refact.show_completion"}] },
-	{ "keys": ["ctrl+alt+p"], "command": "refact_pause" }
+	{ "keys": ["ctrl+alt+p"], "command": "refact_pause" },
+	{ "keys": ["primary+option+p"], "command": "refact_pause" }
 ]
