@@ -21,7 +21,20 @@ class RefactAutocomplete(sublime_plugin.EventListener):
 		session = refact_session_manager.get_session(view)
 		session.notify_document_update()
 		session.update_completion()
+	
+	def on_close(self, view):
+		if not start_refact:
+			return
 
+		session = refact_session_manager.get_session(view)
+		session.notify_close()
+
+	def on_post_save(self, view):
+		if not start_refact:
+			return
+
+		session = refact_session_manager.get_session(view)
+		session.notify_save()
 	
 	def on_query_context(self, view, key, operator, operand, match_all):
 		if start_refact:
@@ -52,6 +65,7 @@ class RefactAutocomplete(sublime_plugin.EventListener):
 			elif command_name == "hide_popup":
 				session.clear_completion()
 			# elif command_name == "left_delete" or command_name == "right_delete":
+	
 			# 	session.clear_completion()
 			elif command_name == "move" or command_name == "move_to":
 				session.clear_completion()
@@ -63,17 +77,24 @@ def plugin_loaded():
 	global start_refact
 	s = sublime.load_settings("refact.sublime-settings")
 	pause_completion = s.get("pause_completion", False)
-	if not pause_completion:	
+	if pause_completion:
+		sublime.status_message("⏸️ refact.ai")
+	else:
+		refact_start()
+
+def refact_start():
+	global refact_session_manager 
+	global start_refact
+	if refact_session_manager:
+		refact_session_manager.start()
+	else:
 		refact_session_manager = RefactSessionManager()
-		start_refact= True
+	start_refact= True
 
 class RefactStartCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
-		global refact_session_manager 
-		global start_refact
-		refact_session_manager = RefactSessionManager()
-		start_refact= True
-
+		refact_start()
+		
 class RefactStopCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 		global start_refact
@@ -123,11 +144,18 @@ class RefactPause(sublime_plugin.TextCommand):
 		global start_refact
 		start_refact= False
 		s = sublime.load_settings("refact.sublime-settings")
-		s.set("pause_completion", True)
+		pause_status = s.get("pause_completion", False)
+		pause_status = not pause_status
+		s.set("pause_completion", pause_status)
 		sublime.save_settings("refact.sublime-settings")
-		refact_session_manager.get_session(self.view).clear_completion()
+
+		if not pause_status:
+			refact_start()
+		else:
+			if refact_session_manager:
+				refact_session_manager.shutdown()
 
 class RefactClearCompletion(sublime_plugin.TextCommand):
 	def run(self, edit):
 		refact_session_manager.get_session(self.view).clear_completion()
-
+ 
