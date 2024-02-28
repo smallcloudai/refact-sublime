@@ -10,7 +10,7 @@ Refact for VS Code is a free, open-source AI code assistant
 6. Open refact.sublime-settings and add the API key
 
 #Pause
-You can pause and unpause refact suggestions by pressing ctrl + p 
+You can pause and unpause refact suggestions by pressing ctrl + alt + p 
 
 #File Documentation#
 

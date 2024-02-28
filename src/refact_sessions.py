@@ -54,9 +54,9 @@ class RefactSession:
 		self.file_name = view.file_name() 
 		if view.file_name() is None:
 			if is_ui:
-				self.file_name = "/UI"
+				self.file_name = os.path.abspath(os.sep) + "UI"
 			else:
-				self.file_name = "/" + str(time.time()) + "_" + str(view.id())
+				self.file_name = os.path.abspath(os.sep) + str(time.time()) + "_" + str(view.id())
 
 		self.phantom_state = PhantomState(view)
 		self.connection = connection

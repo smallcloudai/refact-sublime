@@ -34,6 +34,9 @@ class StatusBar:
 		self.status_loop()
 
 	def handle_err(self, err):
-		if not isinstance(err, str) and err.message:
-			err = err.message
+		if not isinstance(err, str):
+			if hasattr(err, 'message'):
+				err = err.message
+			else:
+				err = str(err)
 		self.update_statusbar("error", msg = str(err))
