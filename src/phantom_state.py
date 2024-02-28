@@ -55,10 +55,7 @@ class Seed():
 		self.empty = (not self.cursor_phantom or len(self.cursor_phantom.text) == 0) and not self.next_inline_phantom and not self.next_line_phantom
 
 	def is_cursor_on_line(self, view, line):
-		if self.cursor_phantom.line <= view.rowcol(line.b)[0]:
-			phantom_line = self.cursor_phantom.get_line(view)
-			return phantom_line.intersects(line)
-		return False
+		return self.cursor_phantom.line == view.rowcol(line.b)[0]
 
 	def create_phantom(self, view, position, text):
 		return PhantomSeed(view, position, text)
@@ -218,6 +215,7 @@ class PhantomState:
 		line = view.line(cursor_point)
 
 		if not seed.is_cursor_on_line(view, line):
+			self.clear_phantoms()
 			return None
 
 		completion_text = self.get_seed_completion_text(seed)

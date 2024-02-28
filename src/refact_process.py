@@ -12,16 +12,6 @@ class RefactProcessWrapper():
 		self.active = False
 		self.statusbar = StatusBar()
 
-	def process_server_errors(self):
-		process = self.process
-
-		stderr = self.process.stderr
-		while process.poll() is None:
-			line = stderr.readline().decode('utf-8')
-			print(line)
-			if "error" in line:
-				self.statusbar.update_statusbar("error", line)
-
 	def get_server_path(self):
 		return os.path.join(sublime.packages_path(), "refact", "server", "refact-lsp")
 	
@@ -51,19 +41,16 @@ class RefactProcessWrapper():
 	def start_server(self):
 		self.active = True
 		server_cmds = self.get_server_commands()
-		self.process = subprocess.Popen(server_cmds, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-		self.poll_server()
-		t = threading.Thread(target=self.process_server_errors)
-		t.start()
-		
+		self.process = subprocess.Popen(server_cmds, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+
+		self.statusbar.update_statusbar("ok")
 		if not self.connection is None:
 			self.connection.shutdown()
 
 		self.connection = LSP(self.process, self.statusbar)
 
-	def poll_server(self):
-		didCrash = self.process.poll()
-		if not didCrash is None:
-			self.active = False
-		else:
-			sublime.set_timeout(self.poll_server, 100)
+	def stop_server(self):
+		self.connection.shutdown()
+		self.process.terminate()
+		self.statusbar.update_statusbar("pause")
+		

@@ -1,5 +1,6 @@
+from .utils import *
 
-def get_nonwhitespace(s, start):
+def get_nonwhitespace(s, start = 0):
 	end = len(s)
 	for i in range(start, end):
 		if not s[i].isspace():
@@ -43,6 +44,16 @@ def collect_space(s, index):
 	return space
 
 def get_completion_text(point, text, line, end = None):
+	if not line or line.isspace():
+		s = replace_tab(text)
+		res_space = get_nonwhitespace(s)
+		l = replace_tab(line)
+		diff = res_space - len(l)
+		if diff > 0:
+			return s[(res_space - diff):]
+		else:
+			return s[res_space:]
+
 	diff = find_diff(text, line)
 	end = end or len(line)
 

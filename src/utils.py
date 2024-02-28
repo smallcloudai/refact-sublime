@@ -36,3 +36,10 @@ def filter_none(l):
 
 def identity(x):
 	return x
+
+def replace_tab(text):
+	s = sublime.load_settings("Preferences.sublime-settings")
+	tab_size = s.get("tab_size", 4)
+	return text.replace('\t', ' ' * tab_size)
+
+

@@ -9,6 +9,7 @@ from .utils import *
 from .refact_lsp import LSP, get_language_id
 from .refact_process import RefactProcessWrapper
 from .phantom_state import PhantomState, PhantomInsertion
+from .completion_text import get_nonwhitespace
 
 class RefactSessionManager:
 
@@ -17,6 +18,15 @@ class RefactSessionManager:
 		self.process = RefactProcessWrapper()
 		self.connection = self.process.start_server()
 		self.views = {}
+
+	def start(self):
+		self.connection = self.process.start_server()
+		
+	def shutdown(self):
+		if self.process and self.process.active:
+			self.process.stop_server()
+		for key, session in self.views.items():
+			session.clear_completion()
 
 	def get_view_id(self, view):
 		if view.element() is None:
@@ -61,7 +71,17 @@ class RefactSession:
 		if self.is_ui or self.phantom_state.update_step:
 			return
 		self.connection().did_change(self.file_name, self.version, get_text(self.view), self.languageId)
-		self.version = self.version + 1
+
+	def notify_close(self):
+		if self.is_ui or self.phantom_state.update_step:
+			return
+		self.connection().did_close(self.file_name, self.version, get_text(self.view), self.languageId)
+
+	def notify_save(self):
+		if self.is_ui or self.phantom_state.update_step:
+			return
+
+		self.connection().did_save(self.file_name, self.version, get_text(self.view), self.languageId)
 
 	def update_completion(self):
 		if self.is_ui :
@@ -154,7 +174,13 @@ class RefactSession:
 			return
 
 		rc = self.view.rowcol(location)
-		res = self.connection().get_completions(self.file_name, rc, multiline)
+
+		if not prefix or prefix.isspace():
+			pos_arg = (rc[0], 0)
+		else:
+			pos_arg = rc
+		res = self.connection().get_completions(self.file_name, pos_arg, multiline)
+
 		if res is None:
 			self.clear_completion_process()
 			return

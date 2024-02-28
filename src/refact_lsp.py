@@ -13,16 +13,41 @@ class LSP:
 		self.connect(process)
 
 	def load_document(self, file_name: str, text: str, version: int = 1, languageId = LANGUAGE_IDENTIFIER.PYTHON):
+		print("load_document", file_name)
+
 		if languageId is None:
 			languageId = LANGUAGE_IDENTIFIER.PYTHON
 
+		if file_name is None:
+			return
+
 		uri = pathlib.Path(file_name).as_uri()
 		try:
-			self.lsp_client.didOpen(TextDocumentItem(uri, languageId, version, text=text))
-		except:
+			self.lsp_client.didOpen(TextDocumentItem(uri, languageId, version=version, text=text))
+		except Exception as err:
+			self.statusbar.handle_err(err)
 			print("lsp didOpen error")
 
 	def did_change(self, file_name: str, version: int, text: str, languageId = LANGUAGE_IDENTIFIER.PYTHON):
+		print("did_change file_name", file_name)
+
+		if languageId is None:
+			languageId = LANGUAGE_IDENTIFIER.PYTHON
+
+		if file_name is None:
+			return
+
+		uri = pathlib.Path(file_name).as_uri()
+		
+		try:
+			self.lsp_client.didChange(TextDocumentItem(uri, languageId, version, text=text), [TextDocumentContentChangeEvent(None, None, text)])
+		except Exception as err:
+			self.statusbar.handle_err(err)
+			print("lsp didChange error")
+
+	def did_save(self, file_name: str, version: int, text: str, languageId = LANGUAGE_IDENTIFIER.PYTHON):
+		print("did_save file_name", file_name)
+
 		if languageId is None:
 			languageId = LANGUAGE_IDENTIFIER.PYTHON
 
@@ -32,9 +57,29 @@ class LSP:
 		uri = pathlib.Path(file_name).as_uri()
 
 		try:
-			self.lsp_client.didChange(TextDocumentItem(uri, languageId, version, text=text), [TextDocumentContentChangeEvent(None, None, text)])
-		except:
-			print("lsp didChange error")
+			self.lsp_client.lsp_endpoint.send_notification("textDocument/didSave", textDocument=TextDocumentItem(uri, languageId, version, text=text)) 
+
+		except Exception as err:
+			self.statusbar.handle_err(err)
+
+			print("lsp didChange error", str(err))
+
+	def did_close(self, file_name: str, version: int, text: str, languageId = LANGUAGE_IDENTIFIER.PYTHON):
+		print("did_close file_name", file_name)
+
+		if languageId is None:
+			languageId = LANGUAGE_IDENTIFIER.PYTHON
+
+		if file_name is None:
+			return
+
+		uri = pathlib.Path(file_name).as_uri()
+
+		try:
+			self.lsp_client.lsp_endpoint.send_notification("textDocument/didClose", textDocument=TextDocumentItem(uri, languageId, version, text=text)) 
+		except Exception as err:
+			print("lsp did_close error")
+			self.statusbar.handle_err(err)
 
 	def get_completions(self, file_name, pos: Tuple[int, int], multiline: bool = False):
 		self.statusbar.update_statusbar("loading")
@@ -43,8 +88,12 @@ class LSP:
 			"temperature": 0.1
 		}
 
+		if file_name is None:
+			return
+
 		uri = pathlib.Path(file_name).as_uri()
-		try:			
+
+		try:
 			res = self.lsp_endpoint.call_method(
 				"refact/getCompletions",
 				textDocument=TextDocumentIdentifier(uri),
@@ -54,29 +103,30 @@ class LSP:
 			self.statusbar.update_statusbar("ok")
 			return res
 		except Exception as err:
-			self.statusbar.update_statusbar("error", str(type(err)))
+			self.statusbar.handle_err(err)
 
 	def shutdown(self):
 		try:
 			self.lsp_client.shutdown()
-		except:
+		except Exception as err:
+			self.statusbar.handle_err(err)
+
 			print("lsp error shutdown")
 
+	def logMessage(self, args):
+		print("logMessage", args)
+		
 	def connect(self, process):
 		capabilities = {}
-		# s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		# s.connect(("127.0.0.1", 8002))
-		# pipein, pipeout = s.makefile("wb", buffering=0), s.makefile("rb", buffering=0)
-
-		# json_rpc_endpoint = JsonRpcEndpoint(pipein, pipeout)
 		json_rpc_endpoint = JsonRpcEndpoint(process.stdin, process.stdout)
-		self.lsp_endpoint = LspEndpoint(json_rpc_endpoint)
+		self.lsp_endpoint = LspEndpoint(json_rpc_endpoint, notify_callbacks = {"window/logMessage":print})
 		self.lsp_client = LspClient(self.lsp_endpoint)
+		
 		try:
 			self.lsp_client.initialize(process.pid, None, None, None, capabilities, "off", None)
 		except Exception as err:
-			self.statusbar.update_statusbar("error", str(type(err)))
-			print("lsp initialize error")
+			self.statusbar.handle_err(err)
+			print("lsp initialize error", err)
 
 def get_language_id(file_type):
 	if file_type and not file_type.isspace():
