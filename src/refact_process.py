@@ -41,7 +41,9 @@ class RefactProcessWrapper():
 	def start_server(self):
 		self.active = True
 		server_cmds = self.get_server_commands()
-		self.process = subprocess.Popen(server_cmds, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+		startupinfo = subprocess.STARTUPINFO()
+		startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+		self.process = subprocess.Popen(server_cmds, startupinfo=startupinfo, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
 		self.statusbar.update_statusbar("ok")
 		if not self.connection is None:
