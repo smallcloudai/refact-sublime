@@ -14,7 +14,7 @@ class RefactProcessWrapper():
 
 	def get_server_path(self):
 		return os.path.join(sublime.packages_path(), "refact", "server", "refact-lsp")
-	
+
 	def get_server_commands(self):
 		s = sublime.load_settings("refact.sublime-settings")
 
@@ -41,8 +41,10 @@ class RefactProcessWrapper():
 	def start_server(self):
 		self.active = True
 		server_cmds = self.get_server_commands()
-		startupinfo = subprocess.STARTUPINFO()
-		startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+		startupinfo = None
+		if os.name == 'nt':
+			startupinfo = subprocess.STARTUPINFO()
+			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 		self.process = subprocess.Popen(server_cmds, startupinfo=startupinfo, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
 		self.statusbar.update_statusbar("ok")
@@ -55,4 +57,4 @@ class RefactProcessWrapper():
 		self.connection.shutdown()
 		self.process.terminate()
 		self.statusbar.update_statusbar("pause")
-		
+
