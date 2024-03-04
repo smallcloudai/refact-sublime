@@ -72,11 +72,18 @@ class RefactAutocomplete(sublime_plugin.EventListener):
 			elif command_name == "drag_select":
 				session.clear_completion()
 
+def restart_server():
+	global refact_session_manager 
+	print("restarting server")
+	if refact_session_manager:
+		refact_session_manager.restart_server()
+
 def plugin_loaded():
 	global refact_session_manager 
 	global start_refact
 	s = sublime.load_settings("refact.sublime-settings")
 	pause_completion = s.get("pause_completion", False)
+	s.add_on_change("restart_server", restart_server)
 	if pause_completion:
 		sublime.status_message("⏸️ refact.ai")
 	else:
@@ -158,4 +165,3 @@ class RefactPause(sublime_plugin.TextCommand):
 class RefactClearCompletion(sublime_plugin.TextCommand):
 	def run(self, edit):
 		refact_session_manager.get_session(self.view).clear_completion()
- 

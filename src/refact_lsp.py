@@ -112,9 +112,6 @@ class LSP:
 			self.statusbar.handle_err(err)
 
 			print("lsp error shutdown")
-
-	def logMessage(self, args):
-		print("logMessage", args)
 		
 	def connect(self, process):
 		capabilities = {}
