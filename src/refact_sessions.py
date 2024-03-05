@@ -19,6 +19,10 @@ class RefactSessionManager:
 		self.connection = self.process.start_server()
 		self.views = {}
 
+	def restart_server(self):
+		self.shutdown()
+		self.start()
+
 	def start(self):
 		self.connection = self.process.start_server()
 		
