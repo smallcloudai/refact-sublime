@@ -52,6 +52,7 @@ class RefactSessionManager:
 class RefactSession:
 	def __init__(self, view, connection, is_ui = False):
 		self.completion_in_process = False
+		self.update_step = False
 		self.session_state = 0
 		self.version = 0
 		self.view = view
@@ -69,11 +70,12 @@ class RefactSession:
 		syntax = view.scope_name(get_cursor_point(view))
 		file_type = syntax[(syntax.rindex(".") + 1):].strip()
 		self.languageId = get_language_id(file_type)
-		self.connection().load_document(self.file_name, get_text(self.view), self.languageId)
+		self.connection().load_document(self.file_name, version = self.version, text = get_text(self.view), languageId = self.languageId)
 	
 	def notify_document_update(self):
 		if self.is_ui or self.phantom_state.update_step:
 			return
+		self.version = self.version + 1
 		self.connection().did_change(self.file_name, self.version, get_text(self.view), self.languageId)
 
 	def notify_close(self):
@@ -95,7 +97,7 @@ class RefactSession:
 			self.clear_completion()
 			return
 		
-		if self.phantom_state.update_step:
+		if self.update_step or self.phantom_state.update_step:
 			return
 
 		if self.has_completion():
@@ -114,9 +116,11 @@ class RefactSession:
 		return self.current_completion
 
 	def clear_completion(self):
+		self.update_step = True
 		self.session_state = self.session_state + 1
-		self.current_completion = None
 		self.phantom_state.clear_phantoms()
+		self.current_completion = None
+		self.update_step = False
 
 	def is_paused(self):
 		s = sublime.load_settings("refact.sublime-settings")
@@ -198,7 +202,8 @@ class RefactSession:
 				return 
 
 		text = get_line(self.view, location)
-		suggestions = [text[:rc[1]] + s['code_completion'] for s in completions]
+		suggestion_prefix =  "" if not prefix or prefix.isspace() else text[:rc[1]]
+		suggestions = [suggestion_prefix + s['code_completion'] for s in completions]
 		sublime.set_timeout(lambda: self.set_phantoms(version, location, suggestions[0]))
 
 	def accept_completion(self):

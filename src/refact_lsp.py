@@ -1,6 +1,8 @@
+import sublime
 import os
 import socket
 import pathlib
+import traceback
 from typing import Optional, Dict, Tuple
 from .pylspclient.lsp_structs import *
 from .pylspclient.lsp_endpoint import LspEndpoint
@@ -12,9 +14,9 @@ class LSP:
 		self.statusbar = statusbar
 		self.connect(process)
 
-	def load_document(self, file_name: str, text: str, version: int = 1, languageId = LANGUAGE_IDENTIFIER.PYTHON):
+	def load_document(self, file_name: str, version: int, text: str, languageId = LANGUAGE_IDENTIFIER.PYTHON):
 		print("load_document", file_name)
-
+				
 		if languageId is None:
 			languageId = LANGUAGE_IDENTIFIER.PYTHON
 
@@ -118,9 +120,12 @@ class LSP:
 		json_rpc_endpoint = JsonRpcEndpoint(process.stdin, process.stdout)
 		self.lsp_endpoint = LspEndpoint(json_rpc_endpoint, notify_callbacks = {"window/logMessage":print})
 		self.lsp_client = LspClient(self.lsp_endpoint)
-		
+		windows = sublime.windows() 
+		workspaces = [{'name': folder, 'uri': pathlib.Path(folder).as_uri()} for w in windows for folder in w.folders()]
+
+		print("workspaces: ", workspaces)
 		try:
-			self.lsp_client.initialize(process.pid, None, None, None, capabilities, "off", None)
+			self.lsp_client.initialize(process.pid, None, None, None, capabilities, "off", workspaces)
 		except Exception as err:
 			self.statusbar.handle_err(err)
 			print("lsp initialize error", err)
