@@ -52,6 +52,7 @@ class RefactSessionManager:
 class RefactSession:
 	def __init__(self, view, connection, is_ui = False):
 		self.completion_in_process = False
+		self.update_step = False
 		self.session_state = 0
 		self.version = 0
 		self.view = view
@@ -95,7 +96,7 @@ class RefactSession:
 			self.clear_completion()
 			return
 		
-		if self.phantom_state.update_step:
+		if self.update_step or self.phantom_state.update_step:
 			return
 
 		if self.has_completion():
@@ -114,9 +115,11 @@ class RefactSession:
 		return self.current_completion
 
 	def clear_completion(self):
+		self.update_step = True
 		self.session_state = self.session_state + 1
-		self.current_completion = None
 		self.phantom_state.clear_phantoms()
+		self.current_completion = None
+		self.update_step = False
 
 	def is_paused(self):
 		s = sublime.load_settings("refact.sublime-settings")
@@ -198,7 +201,8 @@ class RefactSession:
 				return 
 
 		text = get_line(self.view, location)
-		suggestions = [text[:rc[1]] + s['code_completion'] for s in completions]
+		suggestion_prefix =  "" if not prefix or prefix.isspace() else text[:rc[1]]
+		suggestions = [suggestion_prefix + s['code_completion'] for s in completions]
 		sublime.set_timeout(lambda: self.set_phantoms(version, location, suggestions[0]))
 
 	def accept_completion(self):
