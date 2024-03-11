@@ -40,7 +40,7 @@ class RefactAutocomplete(sublime_plugin.EventListener):
 		if start_refact:
 			if key == "refact.show_completion":
 				return refact_session_manager.get_session(view).completion_visible()
-	
+
 	def on_post_text_command(self, view, command_name, args):
 		if start_refact:
 			session = refact_session_manager.get_session(view)
@@ -74,9 +74,13 @@ class RefactAutocomplete(sublime_plugin.EventListener):
 
 def restart_server():
 	global refact_session_manager 
-	print("restarting server")
+	
 	if refact_session_manager:
-		refact_session_manager.restart_server()
+		s = sublime.load_settings("refact.sublime-settings")
+		pause_completion = s.get("pause_completion", False)
+		
+		if not pause_completion:
+			refact_session_manager.restart_server()
 
 def plugin_loaded():
 	global refact_session_manager 
@@ -149,14 +153,14 @@ class RefactAcceptCompletion(sublime_plugin.TextCommand):
 class RefactPause(sublime_plugin.TextCommand):
 	def run(self, edit):
 		global start_refact
-		start_refact= False
 		s = sublime.load_settings("refact.sublime-settings")
 		pause_status = s.get("pause_completion", False)
 		pause_status = not pause_status
+		start_refact = not pause_status
 		s.set("pause_completion", pause_status)
 		sublime.save_settings("refact.sublime-settings")
 
-		if not pause_status:
+		if not pause_status and refact_session_manager is None:
 			refact_start()
 		else:
 			if refact_session_manager:

@@ -51,7 +51,6 @@ class RefactSessionManager:
 
 class RefactSession:
 	def __init__(self, view, connection, is_ui = False):
-		self.completion_in_process = False
 		self.update_step = False
 		self.session_state = 0
 		self.version = 0
@@ -75,6 +74,7 @@ class RefactSession:
 	def notify_document_update(self):
 		if self.is_ui or self.phantom_state.update_step:
 			return
+		self.session_state = self.session_state + 1
 		self.version = self.version + 1
 		self.connection().did_change(self.file_name, self.version, get_text(self.view), self.languageId)
 
@@ -102,7 +102,8 @@ class RefactSession:
 
 		if self.has_completion():
 			self.phantom_state.update()
-		if not self.completion_visible() and not self.completion_in_process:
+
+		if not self.completion_visible():
 			text = get_cursor_line(self.view)
 			self.show_completions(text, [get_cursor_point(self.view)], len(text) == 0 or text.isspace())
 
@@ -126,17 +127,12 @@ class RefactSession:
 		s = sublime.load_settings("refact.sublime-settings")
 		return s.get("pause_completion")
 		
-	def clear_completion_process(self):
-		self.completion_in_process = False
-
 	def show_completions(self, prefix, locations, multiline = False):
-		if not self.phantom_state.update_step and not self.completion_in_process:
-			self.completion_in_process = True
+		if not self.phantom_state.update_step:
 			sublime.set_timeout_async(lambda:self.show_completions_inner(self.session_state, prefix, locations, multiline))
 
 	def set_phantoms(self, version, location, completion):
 		if self.session_state != version or not self.is_position_valid(location):
-			self.clear_completion_process()
 			return
 
 		text = get_line(self.view, location)
@@ -150,8 +146,8 @@ class RefactSession:
 				self.phantom_state.set_new_phantoms([[PhantomInsertion(location, insertions[0]), PhantomInsertion(len(remainder), next_text)]])
 		else:
 			self.current_completion = completion
+
 			self.phantom_state.set_new_phantoms([[PhantomInsertion(location, completion)]])
-		self.clear_completion_process()
 
 	def is_position_valid(self, location):
 		rc = self.view.rowcol(location)
@@ -164,21 +160,18 @@ class RefactSession:
 		return True
 
 	def show_completions_inner(self, version, prefix, locations, multiline = False):
+
 		if version != self.session_state:
-			self.clear_completion_process()
 			return
 
 		if self.is_ui or self.phantom_state.update_step:
-			self.clear_completion_process()
 			return
 
 		if self.is_paused():
-			self.clear_completion_process()
 			return
 
 		location = locations[0]
 		if not self.is_position_valid(location):
-			self.clear_completion_process()
 			return
 
 		rc = self.view.rowcol(location)
@@ -187,10 +180,10 @@ class RefactSession:
 			pos_arg = (rc[0], 0)
 		else:
 			pos_arg = rc
+
 		res = self.connection().get_completions(self.file_name, pos_arg, multiline)
 
 		if res is None:
-			self.clear_completion_process()
 			return
 
 		completions = res["choices"]
@@ -198,8 +191,7 @@ class RefactSession:
 		if len(completions) > 0:
 			completion = completions[0]['code_completion']
 			if not completion or len(completion) == 0 or completion.isspace():
-				self.clear_completion_process()
-				return 
+					return 
 
 		text = get_line(self.view, location)
 		suggestion_prefix =  "" if not prefix or prefix.isspace() else text[:rc[1]]
