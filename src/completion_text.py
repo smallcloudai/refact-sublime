@@ -45,12 +45,13 @@ def collect_space(s, index):
 
 def get_completion_text(point, text, line, end = None):
 	if not line or line.isspace():
-		s = replace_tab(text)
+		tab_size = get_tab_size()
+
+		s = replace_tab(text, tab_size)
 		res_space = get_nonwhitespace(s)
-		l = replace_tab(line)
-		diff = res_space - len(l)
-		if diff > 0:
-			return s[(res_space - diff):]
+		line_len = len(replace_tab(line, tab_size))
+		if res_space > line_len:
+			return s[line_len:]
 		else:
 			return s[res_space:]
 

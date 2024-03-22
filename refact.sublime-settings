@@ -9,7 +9,7 @@
 	"code_completion_model": "",
 	"code_completion_scratchpad": "",
 	"pause_completion": false,
-	"telemetry_code_snippets": false
+	"telemetry_basic": true
 	// Use something like
 	// tail -f -n 1000 ~/.cache/refact/logs/rustbinary.2024-02-07
 	// to see what's going on with the server
