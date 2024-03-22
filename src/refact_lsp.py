@@ -16,7 +16,7 @@ class LSP:
 
 	def load_document(self, file_name: str, version: int, text: str, languageId = LANGUAGE_IDENTIFIER.PYTHON):
 		print("load_document", file_name)
-				
+
 		if languageId is None:
 			languageId = LANGUAGE_IDENTIFIER.PYTHON
 
@@ -106,12 +106,13 @@ class LSP:
 			return res
 		except Exception as err:
 			self.statusbar.handle_err(err)
+			return
+
 
 	def shutdown(self):
 		try:
 			self.lsp_client.shutdown()
 		except Exception as err:
-			self.statusbar.handle_err(err)
 
 			print("lsp error shutdown")
 		

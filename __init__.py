@@ -21,7 +21,7 @@ class RefactAutocomplete(sublime_plugin.EventListener):
 		session = refact_session_manager.get_session(view)
 		session.notify_document_update()
 		session.update_completion()
-	
+
 	def on_close(self, view):
 		if not start_refact:
 			return
@@ -93,13 +93,17 @@ def plugin_loaded():
 	else:
 		refact_start()
 
+def get_start_refact():
+	print("get_start_refact", start_refact)
+	return start_refact
+
 def refact_start():
 	global refact_session_manager 
 	global start_refact
 	if refact_session_manager:
 		refact_session_manager.start()
 	else:
-		refact_session_manager = RefactSessionManager()
+		refact_session_manager = RefactSessionManager(get_start_refact)
 	start_refact= True
 
 class RefactStartCommand(sublime_plugin.TextCommand):

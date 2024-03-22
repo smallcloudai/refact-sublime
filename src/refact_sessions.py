@@ -11,9 +11,12 @@ from .refact_process import RefactProcessWrapper
 from .phantom_state import PhantomState, PhantomInsertion
 from .completion_text import get_nonwhitespace
 
+dummyConnection = {"load_document":identity, "did_change" : identity, "did_close" : identity, "did_save" : identity, "get_completions":identity}
+
 class RefactSessionManager:
 
-	def __init__(self):
+	def __init__(self, is_active):
+		self.is_active = is_active
 		self.connection = None
 		self.process = RefactProcessWrapper()
 		self.connection = self.process.start_server()
@@ -25,7 +28,9 @@ class RefactSessionManager:
 
 	def start(self):
 		self.connection = self.process.start_server()
-		
+		for key, session in self.views.items():
+			session.notify_document_update()
+
 	def shutdown(self):
 		if self.process and self.process.active:
 			self.process.stop_server()
@@ -39,7 +44,9 @@ class RefactSessionManager:
 			return "UI"
 
 	def get_connection(self):
-		if not self.process.active:
+		if not self.is_active():
+			return dummyConnection
+		if  not self.process.active:
 			self.process.start_server()
 		return self.process.connection
 

@@ -10,6 +10,7 @@ class RefactProcessWrapper():
 	def __init__(self):
 		self.connection = None
 		self.active = False
+		self.process = None
 		self.statusbar = StatusBar()
 
 	def get_server_path(self):
@@ -42,6 +43,9 @@ class RefactProcessWrapper():
 		self.active = True
 		server_cmds = self.get_server_commands()
 
+		if not self.process is None:
+			self.process.kill()
+			
 		if hasattr(subprocess, 'STARTUPINFO'):
 			startupinfo = subprocess.STARTUPINFO()
 			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
