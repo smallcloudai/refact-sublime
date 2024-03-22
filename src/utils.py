@@ -37,6 +37,9 @@ def filter_none(l):
 def identity(x):
 	return x
 
+def noop():
+	return None
+
 def get_tab_size():
 	s = sublime.load_settings("Preferences.sublime-settings")
 	return s.get("tab_size", 4)

@@ -11,7 +11,7 @@ from .refact_process import RefactProcessWrapper
 from .phantom_state import PhantomState, PhantomInsertion
 from .completion_text import get_nonwhitespace
 
-dummyConnection = {"load_document":identity, "did_change" : identity, "did_close" : identity, "did_save" : identity, "get_completions":identity}
+dummyConnection = {"load_document":identity, "did_change" : identity, "did_close" : identity, "did_save" : identity, "get_completions":noop}
 
 class RefactSessionManager:
 
