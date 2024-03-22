@@ -186,7 +186,7 @@ class PhantomState:
 			popup_point = popup_point + 1
 
 		popup_text = self.create_annotation_template(text)
-		self.view.show_popup(popup_text, location = popup_point, flags = sublime.PopupFlags.HIDE_ON_CHARACTER_EVENT, max_width = 999)
+		self.view.show_popup(popup_text, location = popup_point, flags = sublime.PopupFlags.HIDE_ON_CHARACTER_EVENT | sublime.HIDE_ON_MOUSE_MOVE, max_width = 999)
 
 	def add_phantoms(self, new_phantoms):
 		view = self.view
