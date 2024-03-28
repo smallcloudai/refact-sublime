@@ -1,5 +1,5 @@
 # refact-sublime
-Refact for VS Code is a free, open-source AI code assistant
+Refact for Sublime is a free, open-source AI code assistant
 
 #Installation Instructions
 1. Download the repository.
