@@ -4,7 +4,7 @@ import sublime
 import sublime_plugin
 import html
 from .utils import *
-from .completion_text import get_completion_text
+from .completion_text import get_completion_text, get_nonwhitespace
 from dataclasses import dataclass
 from typing import NamedTuple
 
@@ -107,7 +107,7 @@ class PhantomState:
 		self.update_step = False
 		self.phantoms_visible = False
 		s = sublime.load_settings("Preferences.sublime-settings")
-		self.tab_size = s.get("tab_size", 4)
+		self.tab_size = get_tab_size()
 
 	invisibleDiv = """
 	<body id="invisible-div">
@@ -176,10 +176,17 @@ class PhantomState:
 			return
 
 		previous_line = get_previous_line(self.view, position)
+		previous_line_text = self.view.substr(previous_line)
+
 		popup_point = previous_line.a
-		if len(previous_line) > 0:
+		if previous_line_text[0] == '\t':
+			popup_point = previous_line.a
+			text = " " + text
+		elif len(previous_line) > 0:
 			popup_point = popup_point + 1
-		self.view.show_popup(self.create_annotation_template(text), location = popup_point, flags = sublime.PopupFlags.HIDE_ON_CHARACTER_EVENT, max_width = 999)
+
+		popup_text = self.create_annotation_template(text)
+		self.view.show_popup(popup_text, location = popup_point, flags = sublime.PopupFlags.HIDE_ON_CHARACTER_EVENT, max_width = 999)
 
 	def add_phantoms(self, new_phantoms):
 		view = self.view

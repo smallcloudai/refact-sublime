@@ -10,11 +10,12 @@ class RefactProcessWrapper():
 	def __init__(self):
 		self.connection = None
 		self.active = False
+		self.process = None
 		self.statusbar = StatusBar()
 
 	def get_server_path(self):
 		return os.path.join(sublime.packages_path(), "refact", "server", "refact-lsp")
-
+	
 	def get_server_commands(self):
 		s = sublime.load_settings("refact.sublime-settings")
 
@@ -41,11 +42,16 @@ class RefactProcessWrapper():
 	def start_server(self):
 		self.active = True
 		server_cmds = self.get_server_commands()
-		startupinfo = None
-		if os.name == 'nt':
+
+		if not self.process is None:
+			self.process.kill()
+			
+		if hasattr(subprocess, 'STARTUPINFO'):
 			startupinfo = subprocess.STARTUPINFO()
 			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-		self.process = subprocess.Popen(server_cmds, startupinfo=startupinfo, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+			self.process = subprocess.Popen(server_cmds, startupinfo=startupinfo, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+		else:
+			self.process = subprocess.Popen(server_cmds, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
 		self.statusbar.update_statusbar("ok")
 		if not self.connection is None:
@@ -54,7 +60,9 @@ class RefactProcessWrapper():
 		self.connection = LSP(self.process, self.statusbar)
 
 	def stop_server(self):
-		self.connection.shutdown()
+		if not self.connection is None:
+			self.connection.shutdown()
 		self.process.terminate()
+		self.active = False
 		self.statusbar.update_statusbar("pause")
-
+		

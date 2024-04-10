@@ -8,11 +8,15 @@ from refact.src.refact_sessions import RefactSessionManager, RefactSession
 
 start_refact = False
 refact_session_manager = None
+open_folders = {}
 
 class RefactAutocomplete(sublime_plugin.EventListener):
 	def on_query_completions(self, view, prefix, locations):
 		if start_refact:
 			refact_session_manager.get_session(view).show_completions(prefix, locations)
+
+	def  on_new_window(self, window):
+		sublime.set_timeout(lambda: restart_on_new_folder(window), 100)
 
 	def on_modified(self, view):
 		if not start_refact:
@@ -21,7 +25,7 @@ class RefactAutocomplete(sublime_plugin.EventListener):
 		session = refact_session_manager.get_session(view)
 		session.notify_document_update()
 		session.update_completion()
-	
+
 	def on_close(self, view):
 		if not start_refact:
 			return
@@ -40,7 +44,7 @@ class RefactAutocomplete(sublime_plugin.EventListener):
 		if start_refact:
 			if key == "refact.show_completion":
 				return refact_session_manager.get_session(view).completion_visible()
-	
+
 	def on_post_text_command(self, view, command_name, args):
 		if start_refact:
 			session = refact_session_manager.get_session(view)
@@ -72,15 +76,42 @@ class RefactAutocomplete(sublime_plugin.EventListener):
 			elif command_name == "drag_select":
 				session.clear_completion()
 
+def restart_server():
+	global refact_session_manager 
+	
+	if refact_session_manager:
+		s = sublime.load_settings("refact.sublime-settings")
+		pause_completion = s.get("pause_completion", False)
+		
+		if not pause_completion:
+			refact_session_manager.restart_server()
+
 def plugin_loaded():
 	global refact_session_manager 
 	global start_refact
+	global open_folders
+	windows = sublime.windows()
+	open_folders = {folder for w in windows for folder in w.folders()} 
 	s = sublime.load_settings("refact.sublime-settings")
 	pause_completion = s.get("pause_completion", False)
+	s.add_on_change("restart_server", restart_server)
 	if pause_completion:
 		sublime.status_message("⏸️ refact.ai")
 	else:
 		refact_start()
+
+def restart_on_new_folder(window):
+	global open_folders
+
+	window_folders = set(window.folders())
+	new_folders = window_folders - open_folders
+	if len(new_folders) > 0:
+		open_folders |= new_folders
+		restart_server()
+
+def get_start_refact():
+	print("get_start_refact", start_refact)
+	return start_refact
 
 def refact_start():
 	global refact_session_manager 
@@ -88,7 +119,7 @@ def refact_start():
 	if refact_session_manager:
 		refact_session_manager.start()
 	else:
-		refact_session_manager = RefactSessionManager()
+		refact_session_manager = RefactSessionManager(get_start_refact)
 	start_refact= True
 
 class RefactStartCommand(sublime_plugin.TextCommand):
@@ -142,14 +173,14 @@ class RefactAcceptCompletion(sublime_plugin.TextCommand):
 class RefactPause(sublime_plugin.TextCommand):
 	def run(self, edit):
 		global start_refact
-		start_refact= False
 		s = sublime.load_settings("refact.sublime-settings")
 		pause_status = s.get("pause_completion", False)
 		pause_status = not pause_status
+		start_refact = not pause_status
 		s.set("pause_completion", pause_status)
 		sublime.save_settings("refact.sublime-settings")
 
-		if not pause_status:
+		if not pause_status and refact_session_manager is None:
 			refact_start()
 		else:
 			if refact_session_manager:
@@ -158,4 +189,3 @@ class RefactPause(sublime_plugin.TextCommand):
 class RefactClearCompletion(sublime_plugin.TextCommand):
 	def run(self, edit):
 		refact_session_manager.get_session(self.view).clear_completion()
- 

@@ -1,4 +1,3 @@
-
 import sublime
 
 class StatusBar:
@@ -34,6 +33,9 @@ class StatusBar:
 		self.status_loop()
 
 	def handle_err(self, err):
+		if self.status == "pause":
+			return
+
 		if not isinstance(err, str):
 			if hasattr(err, 'message'):
 				err = err.message
