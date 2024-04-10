@@ -8,11 +8,15 @@ from refact.src.refact_sessions import RefactSessionManager, RefactSession
 
 start_refact = False
 refact_session_manager = None
+open_folders = {}
 
 class RefactAutocomplete(sublime_plugin.EventListener):
 	def on_query_completions(self, view, prefix, locations):
 		if start_refact:
 			refact_session_manager.get_session(view).show_completions(prefix, locations)
+
+	def  on_new_window(self, window):
+		sublime.set_timeout(lambda: restart_on_new_folder(window), 100)
 
 	def on_modified(self, view):
 		if not start_refact:
@@ -85,6 +89,9 @@ def restart_server():
 def plugin_loaded():
 	global refact_session_manager 
 	global start_refact
+	global open_folders
+	windows = sublime.windows()
+	open_folders = {folder for w in windows for folder in w.folders()} 
 	s = sublime.load_settings("refact.sublime-settings")
 	pause_completion = s.get("pause_completion", False)
 	s.add_on_change("restart_server", restart_server)
@@ -92,6 +99,15 @@ def plugin_loaded():
 		sublime.status_message("⏸️ refact.ai")
 	else:
 		refact_start()
+
+def restart_on_new_folder(window):
+	global open_folders
+
+	window_folders = set(window.folders())
+	new_folders = window_folders - open_folders
+	if len(new_folders) > 0:
+		open_folders |= new_folders
+		restart_server()
 
 def get_start_refact():
 	print("get_start_refact", start_refact)

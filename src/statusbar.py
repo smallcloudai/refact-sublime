@@ -27,7 +27,6 @@ class StatusBar:
 		sublime.set_timeout(self.status_loop, 100)
 
 	def update_statusbar(self, status, msg = ""):
-		print("update_statusbar", status, msg)
 		self.status = status
 		self.msg = msg
 		self.duration = 5
